@@ -11,6 +11,7 @@ public class EnemyData : MonoBehaviour
     private float moveSpeed = 0.0f;
     private Vector2 velocity = Vector2.zero;
     private Vector2 collisionSize = Vector2.zero;
+    private int experiencePoint = 0;
 
     public GameObject Enemy { get => enemy; set => enemy = value; }
     public int HitPoint { get => hitPoint; set => hitPoint = value; }
@@ -18,5 +19,6 @@ public class EnemyData : MonoBehaviour
     public float MoveSpeed { get => moveSpeed; set => moveSpeed = value; }
     public Vector2 Velocity { get => velocity; set => velocity = value; }
     public Vector2 CollisionSize { get => collisionSize; set => collisionSize = value; }
+    public int ExperiencePoint { get => experiencePoint; set => experiencePoint = value; }
 
 }

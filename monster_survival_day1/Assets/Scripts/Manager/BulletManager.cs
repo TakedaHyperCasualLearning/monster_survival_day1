@@ -7,12 +7,12 @@ public class BulletManager : MonoBehaviour
 {
     [SerializeField] GameObject bulletPrefab;
     private List<BulletData> bulletDataList = new List<BulletData>();
-    private Func<Vector2, Vector2, float, Vector2> checkHitEdge = null;
+    private Func<Vector2, float, Vector2> checkHitEdge = null;
     private Func<Vector2, Vector2, float, float, bool> checkHitCircleToCircle = null;
     private Func<List<EnemyData>> getEnemyDataList = null;
     private Action<EnemyData, int> hitEnemyDamage = null;
+    private Func<bool> GetIsLevelUp = null;
     private float bulletSpeed = 5.0f;
-    private int attackPower = 1;
     private int activeBulletCount = 0;
 
     public void Initialize(GameEvent gameEvent)
@@ -21,10 +21,13 @@ public class BulletManager : MonoBehaviour
         checkHitCircleToCircle = gameEvent.checkHitCircleToCircle;
         getEnemyDataList = gameEvent.getEnemyDataList;
         hitEnemyDamage = gameEvent.hitEnemyDamage;
+        GetIsLevelUp = gameEvent.isLevelUp;
     }
 
     public void OnUpdate()
     {
+        if (GetIsLevelUp()) { return; }
+
         for (int i = 0; i < bulletDataList.Count; i++)
         {
             BulletData bulletData = bulletDataList[i];
@@ -41,12 +44,12 @@ public class BulletManager : MonoBehaviour
         bulletData.Bullet.transform.Translate(bulletData.Velocity * Time.deltaTime);
     }
 
-    public void ShotBullet(Vector2 position, Vector2 direction)
+    public void ShotBullet(Vector2 position, Vector2 direction, int attackPower)
     {
-        CreateBullet(position, direction);
+        CreateBullet(position, direction, attackPower);
     }
 
-    private void CreateBullet(Vector2 position, Vector2 direction)
+    private void CreateBullet(Vector2 position, Vector2 direction, int attackPower)
     {
         if (activeBulletCount >= bulletDataList.Count)
         {
@@ -86,10 +89,9 @@ public class BulletManager : MonoBehaviour
 
     private void HitCollision(BulletData bullet)
     {
-        Vector2 hitDirection = checkHitEdge(bullet.Bullet.transform.position, Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height)), -bullet.Radius);
+        Vector2 hitDirection = checkHitEdge(bullet.Bullet.transform.position, -bullet.Radius);
         if (hitDirection != Vector2.zero)
         {
-            Debug.Log("Hit Edge");
             bullet.Bullet.SetActive(false);
             activeBulletCount--;
             return;
@@ -102,6 +104,7 @@ public class BulletManager : MonoBehaviour
             if (enemy.Enemy.activeSelf == false) continue;
             if (checkHitCircleToCircle(bullet.Bullet.transform.position, enemy.Enemy.transform.position, bullet.Radius, enemy.CollisionSize.x))
             {
+                Debug.Log("radius: " + bullet.Radius + ", enemy CollisionSize: " + enemy.CollisionSize.x);
                 bullet.Bullet.SetActive(false);
                 activeBulletCount--;
                 hitEnemyDamage(enemy, bullet.AttackPower);

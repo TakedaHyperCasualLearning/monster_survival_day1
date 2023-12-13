@@ -8,6 +8,8 @@ public class EnemyManager : MonoBehaviour
     [SerializeField] GameObject enemyPrefab = null;
     private List<EnemyData> enemyDataList = new List<EnemyData>();
     private Func<Vector2> GetPlayerPositionFunction = null;
+    private Action<int> AddExperiencePointFunction = null;
+    private Func<bool> GetIsLevelUpFunction = null;
     private int activeEnemyCount = 3;
     private float MOVE_SPEED = 1.0f;
     private int HIT_POINT = 5;
@@ -17,10 +19,13 @@ public class EnemyManager : MonoBehaviour
     private float SPAWN_INTERVAL = 3.0f;
     private Vector2 screenSize = Vector2.zero;
     private Vector2 spawnPositionOffset = Vector2.zero;
+    private int EXPERIENCE_POINT = 1;
 
     public void Initialize(GameEvent gameEvent)
     {
         GetPlayerPositionFunction = gameEvent.getPlayerPosition;
+        AddExperiencePointFunction = gameEvent.addExperiencePoint;
+        GetIsLevelUpFunction = gameEvent.isLevelUp;
 
         screenSize = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
 
@@ -32,6 +37,8 @@ public class EnemyManager : MonoBehaviour
 
     public void OnUpdate()
     {
+        if (GetIsLevelUpFunction()) { return; }
+
         for (int i = 0; i < enemyDataList.Count; i++)
         {
             EnemyData enemy = enemyDataList[i];
@@ -60,7 +67,9 @@ public class EnemyManager : MonoBehaviour
                 Enemy = enemy,
                 HitPoint = HIT_POINT,
                 AttackPower = ATTACK_POWER,
-                MoveSpeed = MOVE_SPEED
+                MoveSpeed = MOVE_SPEED,
+                CollisionSize = enemy.transform.localScale / 2.0f,
+                ExperiencePoint = EXPERIENCE_POINT
             };
             enemyDataList.Add(enemyData);
         }
@@ -71,6 +80,7 @@ public class EnemyManager : MonoBehaviour
             enemyData.HitPoint = HIT_POINT;
             enemyData.AttackPower = ATTACK_POWER;
             enemyData.MoveSpeed = MOVE_SPEED;
+            enemyData.CollisionSize = enemyData.Enemy.transform.localScale / 2.0f;
             enemyData.Enemy.SetActive(true);
         }
         activeEnemyCount++;
@@ -92,6 +102,7 @@ public class EnemyManager : MonoBehaviour
         if (enemy.HitPoint <= 0)
         {
             enemy.Enemy.SetActive(false);
+            AddExperiencePointFunction(enemy.ExperiencePoint);
             activeEnemyCount--;
         }
     }
