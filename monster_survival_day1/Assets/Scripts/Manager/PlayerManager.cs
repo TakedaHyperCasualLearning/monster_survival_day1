@@ -41,4 +41,9 @@ public class PlayerManager : MonoBehaviour
 
         player.Player.transform.Translate(velocity * player.MoveSpeed * Time.deltaTime, UnityEngine.Space.Self);
     }
+
+    public Vector2 GetPlayerPosition()
+    {
+        return player.Player.transform.position;
+    }
 }
