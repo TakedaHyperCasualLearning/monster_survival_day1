@@ -10,6 +10,8 @@ public class EnemyManager : MonoBehaviour
     private Func<Vector2> GetPlayerPositionFunction = null;
     private int activeEnemyCount = 3;
     private float MOVE_SPEED = 1.0f;
+    private int HIT_POINT = 5;
+    private int ATTACK_POWER = 5;
     private Vector2 firstPosition = new Vector2(5.0f, 3.0f);
 
     public void Initialize(GameEvent gameEvent)
@@ -39,6 +41,8 @@ public class EnemyManager : MonoBehaviour
             EnemyData enemyData = new EnemyData()
             {
                 Enemy = enemy,
+                HitPoint = HIT_POINT,
+                AttackPower = ATTACK_POWER,
                 MoveSpeed = MOVE_SPEED
             };
             enemyDataList.Add(enemyData);
@@ -47,6 +51,9 @@ public class EnemyManager : MonoBehaviour
         {
             EnemyData enemyData = enemyDataList[activeEnemyCount];
             enemyData.Enemy.transform.position = position;
+            enemyData.HitPoint = HIT_POINT;
+            enemyData.AttackPower = ATTACK_POWER;
+            enemyData.MoveSpeed = MOVE_SPEED;
             enemyData.Enemy.SetActive(true);
         }
 
@@ -58,6 +65,11 @@ public class EnemyManager : MonoBehaviour
         Vector3 direction = playerPosition - enemy.Enemy.transform.position;
         enemy.Enemy.transform.up = direction;
         enemy.Enemy.transform.Translate(enemy.MoveSpeed * Time.deltaTime * Vector3.up, UnityEngine.Space.Self);
+    }
+
+    public List<EnemyData> GetEnemyDataList()
+    {
+        return enemyDataList;
     }
 
 }
