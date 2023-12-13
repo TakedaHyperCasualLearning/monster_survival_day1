@@ -13,12 +13,18 @@ public class EnemyManager : MonoBehaviour
     private int HIT_POINT = 5;
     private int ATTACK_POWER = 5;
     private Vector2 firstPosition = new Vector2(5.0f, 3.0f);
+    private float spawnTime = 0.0f;
+    private float SPAWN_INTERVAL = 3.0f;
+    private Vector2 screenSize = Vector2.zero;
+    private Vector2 spawnPositionOffset = Vector2.zero;
 
     public void Initialize(GameEvent gameEvent)
     {
         GetPlayerPositionFunction = gameEvent.getPlayerPosition;
 
-        for (int i = 0; i < activeEnemyCount; i++)
+        screenSize = Camera.main.ScreenToWorldPoint(new Vector2(Screen.width, Screen.height));
+
+        for (int i = 0; i < 3; i++)
         {
             GenerateEnemy(new Vector2(UnityEngine.Random.Range(-4.0f, 4.0f), UnityEngine.Random.Range(-8.0f, 8.0f)));
         }
@@ -29,7 +35,18 @@ public class EnemyManager : MonoBehaviour
         for (int i = 0; i < enemyDataList.Count; i++)
         {
             EnemyData enemy = enemyDataList[i];
+            if (enemy.Enemy.activeSelf == false) { continue; }
             VisitPlayer(enemy);
+        }
+
+        if (spawnTime < SPAWN_INTERVAL) { spawnTime += Time.deltaTime; }
+        else
+        {
+            Vector2 randomOffset = new Vector2(UnityEngine.Random.Range(screenSize.x, screenSize.x + spawnPositionOffset.x), UnityEngine.Random.Range(screenSize.y, screenSize.y + spawnPositionOffset.y));
+            randomOffset *= UnityEngine.Random.Range(0, 2) == 0 ? 1 : -1;
+            Vector2 spawnPosition = GetPlayerPositionFunction() + randomOffset;
+            GenerateEnemy(spawnPosition);
+            spawnTime = 0.0f;
         }
     }
 
@@ -49,14 +66,34 @@ public class EnemyManager : MonoBehaviour
         }
         else
         {
-            EnemyData enemyData = enemyDataList[activeEnemyCount];
+            EnemyData enemyData = GetNotUseEnemy();
             enemyData.Enemy.transform.position = position;
             enemyData.HitPoint = HIT_POINT;
             enemyData.AttackPower = ATTACK_POWER;
             enemyData.MoveSpeed = MOVE_SPEED;
             enemyData.Enemy.SetActive(true);
         }
+        activeEnemyCount++;
+    }
 
+    private EnemyData GetNotUseEnemy()
+    {
+        for (int i = 0; i < enemyDataList.Count; i++)
+        {
+            EnemyData enemy = enemyDataList[i];
+            if (!enemy.Enemy.activeSelf) { return enemy; }
+        }
+        return null;
+    }
+
+    public void HitDamage(EnemyData enemy, int damage)
+    {
+        enemy.HitPoint -= damage;
+        if (enemy.HitPoint <= 0)
+        {
+            enemy.Enemy.SetActive(false);
+            activeEnemyCount--;
+        }
     }
 
     private void VisitPlayer(EnemyData enemy)
